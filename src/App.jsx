@@ -95,6 +95,11 @@ export default function App() {
       const current = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 };
       const nextVal = Math.max(0, (current[type] || 0) + delta);
       
+      // Haptic Feedback (Vibration) - subtle pulse
+      if ("vibrate" in navigator) {
+        navigator.vibrate(12);
+      }
+
       const newState = { 
         ...prev, 
         [key]: { 
@@ -103,7 +108,6 @@ export default function App() {
         } 
       };
       
-      // For debugging in browser console
       console.log(`Adjusting ${key} (${type}): ${current[type]} -> ${nextVal}`);
       return newState;
     });
@@ -167,6 +171,15 @@ export default function App() {
       })
 
       if (res.ok) {
+        // Play Cash Register Sound
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2218/2218-preview.mp3')
+        audio.play().catch(e => console.log('Audio play failed:', e))
+        
+        // Haptic Success Vibration
+        if ("vibrate" in navigator) {
+          navigator.vibrate([40, 10, 40]);
+        }
+
         showToast('✅ Venta guardada correctamente')
         resetOrder()
         if (tab === 'ventas') fetchSales()
