@@ -6,17 +6,18 @@ const API = (import.meta.env.VITE_API_URL || '') + '/api'
 export default function App() {
   const [tab, setTab] = useState('calculator') // 'calculator' | 'admin'
   const [dishes, setDishes] = useState([])
-  const [quantities, setQuantities] = useState({})
-  const [isToGo, setIsToGo] = useState(false)
+  const [quantities, setQuantities] = useState({}) // { id: { here: 0, toGo: 0 } }
   const [amountPaid, setAmountPaid] = useState('')
   const [toast, setToast] = useState({ msg: '', visible: false })
 
   // Admin state
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
+  const [newCategory, setNewCategory] = useState('Plato')
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [editCategory, setEditCategory] = useState('Plato')
 
   // Fetch dishes from backend
   const fetchDishes = useCallback(async () => {
@@ -42,22 +43,32 @@ export default function App() {
   }
 
   // ===== Calculator Logic =====
-  const adjustQty = (id, delta) => {
+  const adjustQty = (id, type, delta) => {
     setQuantities(prev => {
-      const current = prev[id] || 0
-      const next = Math.max(0, current + delta)
-      return { ...prev, [id]: next }
+      const current = prev[id] || { here: 0, toGo: 0 }
+      const nextVal = Math.max(0, current[type] + delta)
+      return { ...prev, [id]: { ...current, [type]: nextVal } }
     })
   }
 
   const orderItems = dishes
-    .map(d => ({ ...d, qty: quantities[d.id] || 0 }))
-    .filter(d => d.qty > 0)
+    .map(d => {
+      const q = quantities[d.id] || { here: 0, toGo: 0 }
+      return { 
+        ...d, 
+        qtyHere: q.here, 
+        qtyToGo: q.toGo, 
+        totalQty: q.here + q.toGo 
+      }
+    })
+    .filter(d => d.totalQty > 0)
 
-  const totalQty = orderItems.reduce((sum, d) => sum + d.qty, 0)
+  const subtotal = orderItems.reduce((sum, d) => sum + d.price * d.totalQty, 0)
   const toGoFee = 0.25
-  const toGoTotal = isToGo ? totalQty * toGoFee : 0
-  const subtotal = orderItems.reduce((sum, d) => sum + d.price * d.qty, 0)
+  const toGoTotal = orderItems.reduce((sum, d) => {
+    // Only apply fee if it's a Plato
+    return d.category === 'Otro' ? sum : sum + (d.qtyToGo * toGoFee)
+  }, 0)
   const total = subtotal + toGoTotal
 
   const paid = parseFloat(amountPaid) || 0
@@ -77,13 +88,18 @@ export default function App() {
       const res = await fetch(`${API}/dishes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName.trim(), price: newPrice })
+        body: JSON.stringify({ 
+          name: newName.trim(), 
+          price: newPrice,
+          category: newCategory 
+        })
       })
       if (res.ok) {
         await fetchDishes()
         setNewName('')
         setNewPrice('')
-        showToast('✅ Plato agregado')
+        setNewCategory('Plato')
+        showToast('✅ Producto agregado')
       } else {
         const errData = await res.json().catch(() => ({}))
         showToast(`❌ Error ${res.status}: ${errData.error || 'No se pudo guardar'}`)
@@ -106,12 +122,14 @@ export default function App() {
     setEditingId(dish.id)
     setEditName(dish.name)
     setEditPrice(dish.price.toString())
+    setEditCategory(dish.category || 'Plato')
   }
 
   const cancelEdit = () => {
     setEditingId(null)
     setEditName('')
     setEditPrice('')
+    setEditCategory('Plato')
   }
 
   const saveEdit = async (id) => {
@@ -120,7 +138,11 @@ export default function App() {
       const res = await fetch(`${API}/dishes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName.trim(), price: editPrice })
+        body: JSON.stringify({ 
+          name: editName.trim(), 
+          price: editPrice,
+          category: editCategory 
+        })
       })
       if (res.ok) {
         await fetchDishes()
@@ -233,56 +255,52 @@ export default function App() {
             </div>
           ) : (
             <>
-              {/* To Go Toggle */}
-              <div className={`card to-go-card ${isToGo ? 'active' : ''}`}>
-                <label className="toggle-label" htmlFor="toGoToggle">
-                  <div className="toggle-info">
-                    <span className="toggle-icon">🥡</span>
-                    <div className="toggle-texts">
-                      <span className="toggle-title">¿Es para llevar?</span>
-                      <span className="toggle-desc">+$0.25 adicional por plato</span>
-                    </div>
-                  </div>
-                  <div className="switch">
-                    <input
-                      id="toGoToggle"
-                      type="checkbox"
-                      checked={isToGo}
-                      onChange={(e) => setIsToGo(e.target.checked)}
-                    />
-                    <span className="slider round"></span>
-                  </div>
-                </label>
-              </div>
-
               {/* Dish Counters */}
               <div className="dish-list">
                 {dishes.map(dish => {
-                  const qty = quantities[dish.id] || 0
+                  const q = quantities[dish.id] || { here: 0, toGo: 0 }
+                  const hasQty = q.here > 0 || q.toGo > 0
                   return (
-                    <div key={dish.id} className={`dish-row ${qty > 0 ? 'has-quantity' : ''}`}>
+                    <div key={dish.id} className={`dish-row ${hasQty ? 'has-quantity' : ''}`}>
                       <div className="dish-info">
                         <div className="dish-name">{dish.name}</div>
                         <div className="dish-price">${Number(dish.price).toFixed(2)} c/u</div>
-                        {qty > 0 && (
-                          <div className="dish-subtotal">
-                            = ${(dish.price * qty).toFixed(2)}
+                      </div>
+                      
+                      <div className="counters-container">
+                        <div className="counter-group">
+                          <label>🍽️ Aquí</label>
+                          <div className="counter">
+                            <button
+                              className="counter-btn minus"
+                              onClick={() => adjustQty(dish.id, 'here', -1)}
+                              disabled={q.here === 0}
+                            >−</button>
+                            <span className="counter-value">{q.here}</span>
+                            <button
+                              className="counter-btn"
+                              onClick={() => adjustQty(dish.id, 'here', 1)}
+                            >+</button>
+                          </div>
+                        </div>
+
+                        {dish.category !== 'Otro' && (
+                          <div className="counter-group">
+                            <label>🥡 Llevar</label>
+                            <div className="counter">
+                              <button
+                                className="counter-btn minus"
+                                onClick={() => adjustQty(dish.id, 'toGo', -1)}
+                                disabled={q.toGo === 0}
+                              >−</button>
+                              <span className="counter-value">{q.toGo}</span>
+                              <button
+                                className="counter-btn"
+                                onClick={() => adjustQty(dish.id, 'toGo', 1)}
+                              >+</button>
+                            </div>
                           </div>
                         )}
-                      </div>
-                      <div className="counter">
-                        <button
-                          className="counter-btn minus"
-                          onClick={() => adjustQty(dish.id, -1)}
-                          disabled={qty === 0}
-                          aria-label={`Reducir ${dish.name}`}
-                        >−</button>
-                        <span className="counter-value">{qty}</span>
-                        <button
-                          className="counter-btn"
-                          onClick={() => adjustQty(dish.id, 1)}
-                          aria-label={`Agregar ${dish.name}`}
-                        >+</button>
                       </div>
                     </div>
                   )
@@ -295,20 +313,27 @@ export default function App() {
                 {orderItems.length > 0 ? (
                   <div className="order-summary-items">
                     {orderItems.map(item => (
-                      <div key={item.id} className="order-summary-item">
-                        <span>{item.name} × {item.qty}</span>
-                        <span>${(item.price * item.qty).toFixed(2)}</span>
+                      <div key={item.id} className="order-summary-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                          <span>{item.name} (×{item.totalQty})</span>
+                          <span>${(item.price * item.totalQty).toFixed(2)}</span>
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {item.qtyHere > 0 && <span>🍽️ {item.qtyHere} aquí</span>}
+                          {item.qtyHere > 0 && item.qtyToGo > 0 && <span> | </span>}
+                          {item.qtyToGo > 0 && <span>🥡 {item.qtyToGo} llevar</span>}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 14 }}>
-                    Agrega platos con los botones + para ver el total
+                    Usa los botones + para armar el pedido
                   </div>
                 )}
-                {isToGo && totalQty > 0 && (
+                {toGoTotal > 0 && (
                   <div className="total-row to-go-row">
-                    <span className="to-go-label">📦 Envase/Para llevar (×{totalQty})</span>
+                    <span className="to-go-label">📦 Cobro envase(s) para llevar</span>
                     <span className="to-go-amount">+${toGoTotal.toFixed(2)}</span>
                   </div>
                 )}
@@ -395,6 +420,26 @@ export default function App() {
                   />
                 </div>
               </div>
+              
+              <div className="form-field" style={{ marginTop: '4px', marginBottom: '8px' }}>
+                <label className="form-label">Tipo de Producto</label>
+                <div className="category-toggle">
+                  <button 
+                    type="button" 
+                    className={`category-option ${newCategory === 'Plato' ? 'active' : ''}`}
+                    onClick={() => setNewCategory('Plato')}
+                  >
+                    🍲 Plato (con envase)
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`category-option ${newCategory === 'Otro' ? 'active' : ''}`}
+                    onClick={() => setNewCategory('Otro')}
+                  >
+                    🥤 Otro (bebida/extra)
+                  </button>
+                </div>
+              </div>
               <button className="btn-primary" type="submit">
                 + Agregar producto
               </button>
@@ -434,7 +479,25 @@ export default function App() {
                             placeholder="Precio"
                           />
                         </div>
-                        <div className="edit-actions">
+                        
+                        <div className="category-toggle" style={{ marginTop: '8px' }}>
+                          <button 
+                            type="button" 
+                            className={`category-option ${editCategory === 'Plato' ? 'active' : ''}`}
+                            onClick={() => setEditCategory('Plato')}
+                          >
+                            🍲 Plato
+                          </button>
+                          <button 
+                            type="button" 
+                            className={`category-option ${editCategory === 'Otro' ? 'active' : ''}`}
+                            onClick={() => setEditCategory('Otro')}
+                          >
+                            🥤 Otro
+                          </button>
+                        </div>
+
+                        <div className="edit-actions" style={{ marginTop: '8px' }}>
                           <button className="btn-primary" style={{ flex: 1, padding: '10px' }} onClick={() => saveEdit(dish.id)}>
                             Guardar
                           </button>

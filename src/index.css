@@ -355,6 +355,66 @@ body::after {
 
 .dish-row.has-quantity .counter-value { color: var(--mint); }
 
+/* ===== Dual Counter Layout ===== */
+.counters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 140px;
+}
+
+.counter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.counter-group label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--teal);
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+  opacity: 0.8;
+}
+
+/* ===== Category Toggle ===== */
+.category-toggle {
+  display: flex;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  border: 1.5px solid var(--border);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.category-option {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.category-option.active {
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  color: var(--navy-dark);
+  box-shadow: 0 4px 12px rgba(77,184,163,0.3);
+}
+
 /* ===== To Go Toggle ===== */
 .to-go-card {
   padding: 12px 18px;
