@@ -24,6 +24,16 @@ export default function App() {
   const [amountPaid, setAmountPaid] = useState('')
   const [toast, setToast] = useState({ msg: '', visible: false })
 
+  // Theme state
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light')
+
   // Admin state
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
@@ -32,6 +42,11 @@ export default function App() {
   const [editName, setEditName] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [editCategory, setEditCategory] = useState('Plato')
+
+  // Sales History state
+  const [sales, setSales] = useState([])
+  const [paymentMethod, setPaymentMethod] = useState('Efectivo') // 'Efectivo' | 'Transferencia'
+  const [isSaving, setIsSaving] = useState(false)
 
   // Fetch dishes from backend
   const fetchDishes = useCallback(async () => {
@@ -49,6 +64,22 @@ export default function App() {
   }, [])
 
   useEffect(() => { fetchDishes() }, [fetchDishes])
+
+  const fetchSales = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/sales`)
+      if (res.ok) {
+        const data = await res.json()
+        setSales(data)
+      }
+    } catch (err) {
+      console.error('Error fetching sales:', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (tab === 'ventas') fetchSales()
+  }, [tab, fetchSales])
 
   // Show toast notification
   const showToast = (msg) => {
@@ -105,6 +136,48 @@ export default function App() {
   const resetOrder = () => {
     setQuantities({})
     setAmountPaid('')
+    setPaymentMethod('Efectivo')
+  }
+
+  const finalizeSale = async () => {
+    if (total <= 0 || isSaving) return
+    
+    setIsSaving(true)
+    const saleData = {
+      items: orderItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        qtyHere: item.qtyHere,
+        qtyToGo: item.qtyToGo,
+        price: item.price
+      })),
+      subtotal: subtotal,
+      togo_fee: toGoTotal,
+      total: total,
+      payment_method: paymentMethod,
+      amount_paid: paid,
+      change_given: Math.max(0, change)
+    }
+
+    try {
+      const res = await fetch(`${API}/sales`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(saleData)
+      })
+
+      if (res.ok) {
+        showToast('✅ Venta guardada correctamente')
+        resetOrder()
+        if (tab === 'ventas') fetchSales()
+      } else {
+        showToast('❌ Error al guardar la venta')
+      }
+    } catch (err) {
+      showToast('❌ Error de conexión')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // ===== Admin Logic =====
@@ -189,6 +262,9 @@ export default function App() {
             <span className="cevi">CEVI</span><span className="flow">FLOW</span>
           </div>
         </div>
+        <button className="theme-toggle" onClick={toggleTheme} aria-label="Cambiar tema">
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
       </header>
 
 
@@ -301,19 +377,43 @@ export default function App() {
               {total > 0 && (
                 <div className="payment-card">
                   <div className="payment-title">💵 Cobro y vuelto</div>
-                  <div className="input-group">
-                    <label className="input-label">¿Cuánto te dieron?</label>
-                    <input
-                      className="money-input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="$0.00"
-                      value={amountPaid}
-                      onChange={e => setAmountPaid(e.target.value)}
-                    />
+                  
+                  <div className="form-field" style={{ marginBottom: '12px' }}>
+                    <label className="input-label">Método de Pago</label>
+                    <div className="category-toggle">
+                      <button 
+                        type="button" 
+                        className={`category-option ${paymentMethod === 'Efectivo' ? 'active' : ''}`}
+                        onClick={() => setPaymentMethod('Efectivo')}
+                      >
+                        💵 Efectivo
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`category-option ${paymentMethod === 'Transferencia' ? 'active' : ''}`}
+                        onClick={() => setPaymentMethod('Transferencia')}
+                      >
+                        📱 Transferencia
+                      </button>
+                    </div>
                   </div>
-                  {paid > 0 && (
+
+                  {paymentMethod === 'Efectivo' && (
+                    <div className="input-group">
+                      <label className="input-label">¿Cuánto te dieron?</label>
+                      <input
+                        className="money-input"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="$0.00"
+                        value={amountPaid}
+                        onChange={e => setAmountPaid(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {paymentMethod === 'Efectivo' && paid > 0 && (
                     <div className={`change-result ${change < 0 ? 'insufficient' : ''}`}>
                       <span className="change-label">
                         {change >= 0 ? 'Vuelto a dar:' : 'Falta:'}
@@ -329,14 +429,107 @@ export default function App() {
                 </div>
               )}
 
-              {/* Reset */}
-              {(total > 0 || amountPaid) && (
-                <button className="btn-reset" onClick={resetOrder}>
-                  🔄 Nuevo pedido
-                </button>
-              )}
+              {/* Reset / Finalize */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                {(total > 0 || amountPaid) && (
+                  <button className="btn-icon" onClick={resetOrder} style={{ flex: 1, padding: '15px' }}>
+                    Limpiar
+                  </button>
+                )}
+                {total > 0 && (
+                  <button 
+                    className="btn-primary" 
+                    onClick={finalizeSale} 
+                    disabled={isSaving || (paymentMethod === 'Efectivo' && paid < total)}
+                    style={{ flex: 2 }}
+                  >
+                    {isSaving ? 'Guardando...' : 'Finalizar Venta'}
+                  </button>
+                )}
+              </div>
             </>
           )}
+        </main>
+      )}
+
+      {/* ===== SALES HISTORY SCREEN ===== */}
+      {tab === 'ventas' && (
+        <main className="screen">
+          <div className="section-title">Historial de Ventas</div>
+          <div className="section-subtitle">Resumen diario y transacciones</div>
+
+          {/* Daily Totals Summary */}
+          <div className="summary-grid">
+            <div className="summary-box">
+              <div className="summary-val">${
+                sales
+                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
+                  .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
+              }</div>
+              <div className="summary-lab">Venta Total Hoy</div>
+            </div>
+            <div className="summary-box accent">
+              <div className="summary-val">{
+                sales.filter(s => new Date(s.created_at).toDateString() === new Date().toDateString()).length
+              }</div>
+              <div className="summary-lab">Pedidos Hoy</div>
+            </div>
+          </div>
+
+          <div className="payment-methods-summary" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <div className="card" style={{ flex: 1, padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>💵 EFECTIVO</div>
+              <div style={{ fontWeight: '800', color: 'var(--mint)' }}>${
+                sales
+                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString() && s.payment_method === 'Efectivo')
+                  .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
+              }</div>
+            </div>
+            <div className="card" style={{ flex: 1, padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>📱 TRANSF.</div>
+              <div style={{ fontWeight: '800', color: 'var(--mint)' }}>${
+                sales
+                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString() && s.payment_method === 'Transferencia')
+                  .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
+              }</div>
+            </div>
+          </div>
+
+          <div className="sales-list">
+            {sales.length === 0 ? (
+              <div className="empty-state">No hay ventas registradas</div>
+            ) : (
+              sales.map(sale => (
+                <div key={sale.id} className="sale-card">
+                  <div className="sale-header">
+                    <div className="sale-time">
+                      {new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <span className="sale-date"> - {new Date(sale.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="sale-method">{sale.payment_method === 'Efectivo' ? '💵' : '📱'}</div>
+                  </div>
+                  <div className="sale-items" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {sale.items.map((it, idx) => (
+                      <div key={idx} className="sale-item-row" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                          {it.name} <span style={{ color: 'var(--text-muted)', fontWeight: '400' }}>x{it.qtyHere + it.qtyToGo}</span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {it.qtyHere > 0 && <span>🍽️ {it.qtyHere} aquí</span>}
+                          {it.qtyHere > 0 && it.qtyToGo > 0 && <span> | </span>}
+                          {it.qtyToGo > 0 && <span>🥡 {it.qtyToGo} llevar</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="sale-footer">
+                    <span className="sale-total-label">Total</span>
+                    <span className="sale-total">${Number(sale.total).toFixed(2)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </main>
       )}
 
@@ -488,6 +681,13 @@ export default function App() {
         >
           <span>🧮</span>
           <span>Calcular</span>
+        </button>
+        <button
+          className={`tab-btn ${tab === 'ventas' ? 'active' : ''}`}
+          onClick={() => setTab('ventas')}
+        >
+          <span>📊</span>
+          <span>Ventas</span>
         </button>
         <button
           className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
