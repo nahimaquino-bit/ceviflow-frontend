@@ -182,92 +182,17 @@ export default function App() {
   return (
     <div className="app">
       {/* Header */}
-      <header className="header">
+      {/* Header (Minimalist) */}
+      <header className="header" style={{ paddingBottom: '10px' }}>
         <div className="logo-wrapper">
-          <div className="logo-glow-ring" />
-          {/* Inline SVG logo - always works without external file */}
-          <svg
-            className="logo-img"
-            viewBox="0 0 100 100"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-label="CeviFlow Logo"
-          >
-            {/* Outer glow circle */}
-            <circle cx="50" cy="50" r="46" fill="url(#bg)" opacity="0.9"/>
-            {/* Ship wheel spokes */}
-            {[0,45,90,135,180,225,270,315].map((angle, i) => (
-              <line
-                key={i}
-                x1="50" y1="50"
-                x2={50 + 38 * Math.cos((angle - 90) * Math.PI / 180)}
-                y2={50 + 38 * Math.sin((angle - 90) * Math.PI / 180)}
-                stroke="#1a2e4a" strokeWidth="4" strokeLinecap="round"
-              />
-            ))}
-            {/* Outer ring */}
-            <circle cx="50" cy="50" r="38" stroke="#1a2e4a" strokeWidth="4" fill="none"/>
-            {/* Inner ring */}
-            <circle cx="50" cy="50" r="24" stroke="#1a2e4a" strokeWidth="3" fill="rgba(255,255,255,0.15)"/>
-            {/* Calculator rectangle */}
-            <rect x="36" y="38" width="28" height="24" rx="3" fill="#1a2e4a" opacity="0.9"/>
-            <rect x="38" y="40" width="24" height="9" rx="2" fill="url(#screen)"/>
-            {/* Calculator buttons */}
-            <rect x="38" y="51" width="6" height="4" rx="1" fill="#7dd9c0" opacity="0.8"/>
-            <rect x="46" y="51" width="6" height="4" rx="1" fill="#7dd9c0" opacity="0.8"/>
-            <rect x="54" y="51" width="6" height="4" rx="1" fill="#7dd9c0" opacity="0.8"/>
-            <rect x="38" y="57" width="6" height="4" rx="1" fill="#4db8a3" opacity="0.8"/>
-            <rect x="46" y="57" width="6" height="4" rx="1" fill="#4db8a3" opacity="0.8"/>
-            <rect x="54" y="57" width="6" height="4" rx="1" fill="#4db8a3" opacity="0.8"/>
-            {/* Screen text */}
-            <text x="50" y="47.5" textAnchor="middle" fill="#7dd9c0" fontSize="6" fontWeight="bold">12.50</text>
-            {/* Center hub */}
-            <circle cx="50" cy="50" r="5" fill="#1a2e4a"/>
-            <circle cx="50" cy="50" r="2.5" fill="#7dd9c0"/>
-            {/* Spoke handle dots */}
-            {[0,45,90,135,180,225,270,315].map((angle, i) => (
-              <circle
-                key={i}
-                cx={50 + 38 * Math.cos((angle - 90) * Math.PI / 180)}
-                cy={50 + 38 * Math.sin((angle - 90) * Math.PI / 180)}
-                r="4" fill="#1a2e4a"
-              />
-            ))}
-            <defs>
-              <radialGradient id="bg" cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stopColor="#a8ead8"/>
-                <stop offset="100%" stopColor="#4db8a3"/>
-              </radialGradient>
-              <linearGradient id="screen" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#1a2e4a"/>
-                <stop offset="100%" stopColor="#243a57"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="logo-text">
+          <div className="logo-text" style={{ fontSize: '24px', marginTop: '0' }}>
             <span className="cevi">CEVI</span><span className="flow">FLOW</span>
           </div>
-          <div className="logo-tagline">Calculadora de cevichería</div>
         </div>
       </header>
 
 
 
-      {/* Tab Navigation */}
-      <nav className="tab-nav">
-        <button
-          className={`tab-btn ${tab === 'calculator' ? 'active' : ''}`}
-          onClick={() => setTab('calculator')}
-        >
-          🧮 Calcular
-        </button>
-        <button
-          className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
-          onClick={() => setTab('admin')}
-        >
-          ⚙️ Productos
-        </button>
-      </nav>
 
       {/* ===== CALCULATOR SCREEN ===== */}
       {tab === 'calculator' && (
@@ -554,6 +479,24 @@ export default function App() {
           </div>
         </main>
       )}
+
+      {/* Bottom Tab Navigation (iOS Style) */}
+      <nav className="tab-nav">
+        <button
+          className={`tab-btn ${tab === 'calculator' ? 'active' : ''}`}
+          onClick={() => setTab('calculator')}
+        >
+          <span>🧮</span>
+          <span>Calcular</span>
+        </button>
+        <button
+          className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
+          onClick={() => setTab('admin')}
+        >
+          <span>⚙️</span>
+          <span>Productos</span>
+        </button>
+      </nav>
 
       {/* Toast */}
       <div className={`toast ${toast.visible ? 'visible' : ''}`}>{toast.msg}</div>

@@ -39,11 +39,11 @@
   --warn:         #fbbf24;
 
   /* Shapes */
-  --radius:    16px;
-  --radius-sm: 10px;
-  --radius-xs: 7px;
-  --shadow:    0 8px 32px rgba(0,0,0,0.45);
-  --transition: 0.18s ease;
+  --radius:    28px;
+  --radius-sm: 20px;
+  --radius-xs: 12px;
+  --shadow:    0 12px 40px rgba(0,0,0,0.5);
+  --transition: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -172,51 +172,66 @@ body::after {
   margin-top: 2px;
 }
 
-/* ===== Tab Navigation ===== */
+/* ===== Bottom Tab Navigation (iOS Style) ===== */
 .tab-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 6px;
-  margin: 20px 20px 0;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 5px;
+  gap: 8px;
+  padding: 10px 20px 30px;
+  background: rgba(14, 31, 53, 0.85);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 11px 8px;
+  padding: 14px 10px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  letter-spacing: 0.02em;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
-  color: var(--navy-dark);
-  box-shadow: 0 0 20px rgba(77,184,163,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  color: var(--mint);
+  transform: translateY(-2px);
+}
+
+.tab-btn.active::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--mint);
+  border-radius: 50%;
+  margin-top: 4px;
+  box-shadow: 0 0 10px var(--mint);
 }
 
 .tab-btn:not(.active):hover {
-  background: rgba(125,217,192,0.08);
-  color: var(--mint);
+  color: var(--text-primary);
 }
 
 /* ===== Screen ===== */
 .screen {
   flex: 1;
-  padding: 18px 20px 32px;
+  padding: 18px 20px 120px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -250,19 +265,19 @@ body::after {
 }
 
 .product-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  gap: 14px;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   position: relative;
   overflow: hidden;
-  min-height: 180px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
 .product-card::before {
@@ -272,6 +287,7 @@ body::after {
   background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .product-card:hover {
