@@ -171,8 +171,8 @@ export default function App() {
       })
 
       if (res.ok) {
-        // Play Cash Register Sound
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2218/2218-preview.mp3')
+        // Play Cash Register Sound (SoundJay - Professional)
+        const audio = new Audio('https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3')
         audio.play().catch(e => console.log('Audio play failed:', e))
         
         // Haptic Success Vibration
