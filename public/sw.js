@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ceviflow-v1'
+const CACHE_NAME = 'ceviflow-v2'
 const PRECACHE = ['/', '/index.html']
 
 self.addEventListener('install', e => {
@@ -16,8 +16,12 @@ self.addEventListener('activate', e => {
 })
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('/api/')) return // Don't cache API calls
+  if (e.request.url.includes('/api/')) return
+  
+  // Strategy: Network First (always get newest if online)
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request)
+      .catch(() => caches.match(e.request))
   )
 })
+
