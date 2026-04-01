@@ -355,6 +355,131 @@ body::after {
 
 .dish-row.has-quantity .counter-value { color: var(--mint); }
 
+/* ===== To Go Toggle ===== */
+.to-go-card {
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.to-go-card.active {
+  border-color: var(--mint);
+  background: rgba(125,217,192,0.08);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 100%;
+}
+
+.toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-icon {
+  font-size: 24px;
+}
+
+.toggle-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggle-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.toggle-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Switch styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .3s;
+  border: 1px solid var(--border);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 2px;
+  background-color: var(--text-secondary);
+  transition: .3s;
+}
+
+input:checked + .slider {
+  background-color: var(--mint);
+  border-color: var(--mint);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--mint);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+  background-color: var(--navy-dark);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Summary items for to-go */
+.to-go-row {
+  margin-top: 1px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.to-go-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mint);
+}
+
+.to-go-amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--mint);
+}
+
 /* ===== Totals Card ===== */
 .totals-card {
   background: linear-gradient(135deg, rgba(77,184,163,0.12) 0%, rgba(26,46,74,0.5) 100%);

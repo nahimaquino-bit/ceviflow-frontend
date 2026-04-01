@@ -7,6 +7,7 @@ export default function App() {
   const [tab, setTab] = useState('calculator') // 'calculator' | 'admin'
   const [dishes, setDishes] = useState([])
   const [quantities, setQuantities] = useState({})
+  const [isToGo, setIsToGo] = useState(false)
   const [amountPaid, setAmountPaid] = useState('')
   const [toast, setToast] = useState({ msg: '', visible: false })
 
@@ -53,13 +54,18 @@ export default function App() {
     .map(d => ({ ...d, qty: quantities[d.id] || 0 }))
     .filter(d => d.qty > 0)
 
-  const total = orderItems.reduce((sum, d) => sum + d.price * d.qty, 0)
+  const totalQty = orderItems.reduce((sum, d) => sum + d.qty, 0)
+  const toGoFee = 0.25
+  const toGoTotal = isToGo ? totalQty * toGoFee : 0
+  const subtotal = orderItems.reduce((sum, d) => sum + d.price * d.qty, 0)
+  const total = subtotal + toGoTotal
 
   const paid = parseFloat(amountPaid) || 0
   const change = paid - total
 
   const resetOrder = () => {
     setQuantities({})
+    setIsToGo(false)
     setAmountPaid('')
   }
 
@@ -119,7 +125,7 @@ export default function App() {
       if (res.ok) {
         await fetchDishes()
         cancelEdit()
-        showToast('✏️ Plato actualizado')
+        showToast('✏️ Producto actualizado')
       }
     } catch { showToast('❌ Error al actualizar') }
   }
@@ -210,7 +216,7 @@ export default function App() {
           className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
           onClick={() => setTab('admin')}
         >
-          ⚙️ Platos
+          ⚙️ Productos
         </button>
       </nav>
 
@@ -223,10 +229,32 @@ export default function App() {
               <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 6 }}>
                 Aún no tienes platos
               </strong>
-              Ve a la pestaña <strong>⚙️ Platos</strong> para agregar tu menú y sus precios.
+              Ve a la pestaña <strong>⚙️ Productos</strong> para agregar tu menú y sus precios.
             </div>
           ) : (
             <>
+              {/* To Go Toggle */}
+              <div className={`card to-go-card ${isToGo ? 'active' : ''}`}>
+                <label className="toggle-label" htmlFor="toGoToggle">
+                  <div className="toggle-info">
+                    <span className="toggle-icon">🥡</span>
+                    <div className="toggle-texts">
+                      <span className="toggle-title">¿Es para llevar?</span>
+                      <span className="toggle-desc">+$0.25 adicional por plato</span>
+                    </div>
+                  </div>
+                  <div className="switch">
+                    <input
+                      id="toGoToggle"
+                      type="checkbox"
+                      checked={isToGo}
+                      onChange={(e) => setIsToGo(e.target.checked)}
+                    />
+                    <span className="slider round"></span>
+                  </div>
+                </label>
+              </div>
+
               {/* Dish Counters */}
               <div className="dish-list">
                 {dishes.map(dish => {
@@ -276,6 +304,12 @@ export default function App() {
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 14 }}>
                     Agrega platos con los botones + para ver el total
+                  </div>
+                )}
+                {isToGo && totalQty > 0 && (
+                  <div className="total-row to-go-row">
+                    <span className="to-go-label">📦 Envase/Para llevar (×{totalQty})</span>
+                    <span className="to-go-amount">+${toGoTotal.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="total-row">
@@ -332,8 +366,8 @@ export default function App() {
         <main className="screen">
           {/* Add new dish */}
           <div className="card">
-            <div className="section-title">Agregar plato</div>
-            <div className="section-subtitle">Escribe el nombre y precio del plato</div>
+            <div className="section-title">Agregar producto</div>
+            <div className="section-subtitle">Escribe el nombre y precio del producto</div>
             <form className="admin-form" onSubmit={addDish}>
               <div className="form-row">
                 <div className="form-field">
@@ -362,7 +396,7 @@ export default function App() {
                 </div>
               </div>
               <button className="btn-primary" type="submit">
-                + Agregar plato
+                + Agregar producto
               </button>
             </form>
           </div>
@@ -370,12 +404,12 @@ export default function App() {
           {/* Dish list */}
           <div>
             <div className="section-title" style={{ marginBottom: 12 }}>
-              Mis platos ({dishes.length})
+              Mis productos ({dishes.length})
             </div>
             {dishes.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">🍽️</div>
-                <div className="empty-state-text">No hay platos todavía</div>
+                <div className="empty-state-text">No hay productos todavía</div>
               </div>
             ) : (
               <div className="dish-list">
