@@ -21,10 +21,14 @@ export default function App() {
   const fetchDishes = useCallback(async () => {
     try {
       const res = await fetch(`${API}/dishes`)
-      const data = await res.json()
-      setDishes(data)
-    } catch {
-      // fallback: keep existing
+      if (res.ok) {
+        const data = await res.json()
+        setDishes(data)
+      } else {
+        showToast(`❌ Error: ${res.status} al cargar platos`)
+      }
+    } catch (err) {
+      showToast('❌ No se pudo conectar con el servidor')
     }
   }, [])
 
@@ -74,8 +78,13 @@ export default function App() {
         setNewName('')
         setNewPrice('')
         showToast('✅ Plato agregado')
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        showToast(`❌ Error ${res.status}: ${errData.error || 'No se pudo guardar'}`)
       }
-    } catch { showToast('❌ Error al agregar') }
+    } catch (err) {
+      showToast('❌ Error de conexión al guardar')
+    }
   }
 
   const deleteDish = async (id) => {
