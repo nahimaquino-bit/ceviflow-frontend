@@ -59,11 +59,23 @@ export default function App() {
   // ===== Calculator Logic =====
   const adjustQty = (id, type, delta) => {
     setQuantities(prev => {
-      const val = prev[id]
-      const current = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 }
-      const nextVal = Math.max(0, (current[type] || 0) + delta)
-      return { ...prev, [id]: { ...current, [type]: nextVal } }
-    })
+      const key = String(id);
+      const val = prev[key];
+      const current = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 };
+      const nextVal = Math.max(0, (current[type] || 0) + delta);
+      
+      const newState = { 
+        ...prev, 
+        [key]: { 
+          ...current, 
+          [type]: nextVal 
+        } 
+      };
+      
+      // For debugging in browser console
+      console.log(`Adjusting ${key} (${type}): ${current[type]} -> ${nextVal}`);
+      return newState;
+    });
   }
 
   const orderItems = dishes
@@ -290,13 +302,13 @@ export default function App() {
                           <div className="counter">
                             <button
                               className="counter-btn minus"
-                              onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'here', -1); }}
-                              disabled={q.here === 0}
+                              onClick={() => adjustQty(dish.id, 'here', -1)}
+                              disabled={(q.here || 0) === 0}
                             >−</button>
-                            <span className="counter-value">{q.here}</span>
+                            <span className="counter-value">{q.here || 0}</span>
                             <button
                               className="counter-btn"
-                              onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'here', 1); }}
+                              onClick={() => adjustQty(dish.id, 'here', 1)}
                             >+</button>
                           </div>
                         </div>
@@ -307,13 +319,13 @@ export default function App() {
                             <div className="counter">
                               <button
                                 className="counter-btn minus"
-                                onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'toGo', -1); }}
-                                disabled={q.toGo === 0}
+                                onClick={() => adjustQty(dish.id, 'toGo', -1)}
+                                disabled={(q.toGo || 0) === 0}
                               >−</button>
-                              <span className="counter-value">{q.toGo}</span>
+                              <span className="counter-value">{q.toGo || 0}</span>
                               <button
                                 className="counter-btn"
-                                onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'toGo', 1); }}
+                                onClick={() => adjustQty(dish.id, 'toGo', 1)}
                               >+</button>
                             </div>
                           </div>
