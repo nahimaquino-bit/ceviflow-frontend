@@ -3,6 +3,20 @@ import { useState, useEffect, useCallback } from 'react'
 const API = (import.meta.env.VITE_API_URL || '') + '/api'
 
 
+const getEmoji = (name) => {
+  const n = name.toLowerCase();
+  if (n.includes('ceviche')) return '🥘';
+  if (n.includes('cola') || n.includes('gaseosa') || n.includes('fanta') || n.includes('sprite')) return '🥤';
+  if (n.includes('agua')) return '💧';
+  if (n.includes('chifle')) return '🍌';
+  if (n.includes('cerveza')) return '🍺';
+  if (n.includes('arroz') || n.includes('chaufa')) return '🍛';
+  if (n.includes('pescado')) return '🐟';
+  if (n.includes('marisco')) return '🦑';
+  if (n.includes('leche')) return '🥛';
+  return '🍽️';
+};
+
 export default function App() {
   const [tab, setTab] = useState('calculator') // 'calculator' | 'admin'
   const [dishes, setDishes] = useState([])
@@ -45,20 +59,22 @@ export default function App() {
   // ===== Calculator Logic =====
   const adjustQty = (id, type, delta) => {
     setQuantities(prev => {
-      const current = prev[id] || { here: 0, toGo: 0 }
-      const nextVal = Math.max(0, current[type] + delta)
+      const val = prev[id]
+      const current = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 }
+      const nextVal = Math.max(0, (current[type] || 0) + delta)
       return { ...prev, [id]: { ...current, [type]: nextVal } }
     })
   }
 
   const orderItems = dishes
     .map(d => {
-      const q = quantities[d.id] || { here: 0, toGo: 0 }
+      const val = quantities[d.id]
+      const q = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 }
       return { 
         ...d, 
-        qtyHere: q.here, 
-        qtyToGo: q.toGo, 
-        totalQty: q.here + q.toGo 
+        qtyHere: q.here || 0, 
+        qtyToGo: q.toGo || 0, 
+        totalQty: (q.here || 0) + (q.toGo || 0) 
       }
     })
     .filter(d => d.totalQty > 0)
@@ -76,7 +92,6 @@ export default function App() {
 
   const resetOrder = () => {
     setQuantities({})
-    setIsToGo(false)
     setAmountPaid('')
   }
 
@@ -258,10 +273,12 @@ export default function App() {
               {/* Dish Counters */}
               <div className="dish-list">
                 {dishes.map(dish => {
-                  const q = quantities[dish.id] || { here: 0, toGo: 0 }
-                  const hasQty = q.here > 0 || q.toGo > 0
+                  const val = quantities[dish.id]
+                  const q = (val && typeof val === 'object') ? val : { here: 0, toGo: 0 }
+                  const hasQty = (q.here || 0) > 0 || (q.toGo || 0) > 0
                   return (
-                    <div key={dish.id} className={`dish-row ${hasQty ? 'has-quantity' : ''}`}>
+                    <div key={dish.id} className={`product-card ${hasQty ? 'has-quantity' : ''}`}>
+                      <div className="product-emoji">{getEmoji(dish.name)}</div>
                       <div className="dish-info">
                         <div className="dish-name">{dish.name}</div>
                         <div className="dish-price">${Number(dish.price).toFixed(2)} c/u</div>
@@ -273,13 +290,13 @@ export default function App() {
                           <div className="counter">
                             <button
                               className="counter-btn minus"
-                              onClick={() => adjustQty(dish.id, 'here', -1)}
+                              onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'here', -1); }}
                               disabled={q.here === 0}
                             >−</button>
                             <span className="counter-value">{q.here}</span>
                             <button
                               className="counter-btn"
-                              onClick={() => adjustQty(dish.id, 'here', 1)}
+                              onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'here', 1); }}
                             >+</button>
                           </div>
                         </div>
@@ -290,13 +307,13 @@ export default function App() {
                             <div className="counter">
                               <button
                                 className="counter-btn minus"
-                                onClick={() => adjustQty(dish.id, 'toGo', -1)}
+                                onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'toGo', -1); }}
                                 disabled={q.toGo === 0}
                               >−</button>
                               <span className="counter-value">{q.toGo}</span>
                               <button
                                 className="counter-btn"
-                                onClick={() => adjustQty(dish.id, 'toGo', 1)}
+                                onClick={(e) => { e.stopPropagation(); adjustQty(dish.id, 'toGo', 1); }}
                               >+</button>
                             </div>
                           </div>
