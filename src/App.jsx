@@ -19,7 +19,12 @@ const getEmoji = (name) => {
 
 export default function App() {
   const [tab, setTab] = useState('calculator') // 'calculator' | 'admin'
-  const [dishes, setDishes] = useState([])
+  const [dishes, setDishes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cachedDishes')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
   const [quantities, setQuantities] = useState(() => {
     try {
       const saved = localStorage.getItem('currentOrder')
@@ -77,6 +82,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json()
         setDishes(data)
+        localStorage.setItem('cachedDishes', JSON.stringify(data)) // Save to persistent cache
         hasLoadedDishes.current = true
       } else {
         showToast(`❌ Error: ${res.status} al cargar platos`)
@@ -87,8 +93,11 @@ export default function App() {
   }, [dishes.length])
 
   useEffect(() => { 
-    fetchDishes() 
-  }, [fetchDishes])
+    // Auto-fetch only if empty or explicitly in admin to ensure sync
+    if (dishes.length === 0 || tab === 'admin') {
+      fetchDishes() 
+    }
+  }, [fetchDishes, tab, dishes.length])
 
   const fetchSales = useCallback(async (force = false) => {
     // Cache: Avoid fetching if dates haven't changed, unless forced
@@ -266,9 +275,13 @@ export default function App() {
           navigator.vibrate([40, 10, 40]);
         }
 
+        // Success: Instead of fetching, add the new sale locally to save credits
+        const savedSale = await res.json()
+        setSales(prev => [savedSale, ...prev])
+        
         showToast('✅ Venta guardada correctamente')
         resetOrder()
-        if (tab === 'ventas') fetchSales(true) 
+        // No longer calling fetchSales(true) to save credits
       } else {
         showToast('❌ Error al guardar la venta')
       }
