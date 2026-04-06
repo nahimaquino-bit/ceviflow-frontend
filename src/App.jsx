@@ -141,22 +141,30 @@ export default function App() {
       return
     }
     
-    // CSV Header (organized for Excel)
-    const headers = ["Fecha", "Hora", "Productos Detallados", "Subtotal ($)", "Adicional Envases ($)", "Total ($)", "Método de Pago"]
+    // 1. Report Header (Organized for Excel)
+    const reportHeader = [
+      ["REPORTE DE VENTAS - CEVIFLOW"],
+      [`Desde: ${filterStartDate} | Hasta: ${filterEndDate}`],
+      [`Fecha de generación: ${new Date().toLocaleString()}`],
+      [] // Empty line separator
+    ]
+
+    // 2. Table Headers
+    const tableHeaders = ["FECHA", "HORA", "DETALLE DE PRODUCTOS", "SUBTOTAL ($)", "ENVASES ($)", "TOTAL COBRADO ($)", "MÉTODO"]
     
+    // 3. Data Rows
     const rows = sales.map(s => {
       const dateObj = new Date(s.created_at)
       const dateStr = dateObj.toLocaleDateString()
       const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       
-      // Detailed items string
+      // Better product list formatting
       const itemsStr = s.items.map(it => {
         const totalQty = it.qtyHere + it.qtyToGo
-        const details = []
-        if (it.qtyHere > 0) details.push(`${it.qtyHere} aquí`)
-        if (it.qtyToGo > 0) details.push(`${it.qtyToGo} llevar`)
-        return `${it.name} x${totalQty} [${details.join(' | ')}]`
-      }).join(' / ')
+        let detailStr = `${it.name} x${totalQty}`
+        if (it.qtyToGo > 0) detailStr += ` (📦${it.qtyToGo} para llevar)`
+        return detailStr
+      }).join(' • ')
       
       return [
         dateStr,
@@ -165,24 +173,37 @@ export default function App() {
         Number(s.subtotal).toFixed(2),
         Number(s.togo_fee).toFixed(2),
         Number(s.total).toFixed(2),
-        s.payment_method
+        s.payment_method.toUpperCase()
       ]
     })
 
-    // Prepare CSV Content with BOM for Excel compatibility (accents/emojis)
+    // 4. Totals Row
+    const totalRev = sales.reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
+    const totalSub = sales.reduce((acc, s) => acc + Number(s.subtotal), 0).toFixed(2)
+    const totalEnv = sales.reduce((acc, s) => acc + Number(s.togo_fee), 0).toFixed(2)
+    
+    const summaryRows = [
+      [],
+      ["", "", "TOTALES", totalSub, totalEnv, totalRev, ""],
+      ["", "", `PEDIDOS TOTALES: ${sales.length}`, "", "", "", ""]
+    ]
+
+    // 5. Build CSV Content with BOM for Excel compatibility (accents/emojis)
     const BOM = "\ufeff"
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n")
+    const finalData = [...reportHeader, tableHeaders, ...rows, ...summaryRows]
+    const csvContent = finalData.map(row => row.join(",")).join("\n")
+    
     const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     
-    // Create download link
+    // 6. Create download link
     const link = document.body.appendChild(document.createElement("a"))
     link.href = url
-    link.download = `Ventas_CeviFlow_${filterStartDate}_a_${filterEndDate}.csv`
+    link.download = `CeviFlow_Reporte_${filterStartDate}_a_${filterEndDate}.csv`
     link.click()
     document.body.removeChild(link)
     
-    showToast('📊 Reporte descargado')
+    showToast('📊 Reporte generado con éxito')
   }
 
   // ===== Calculator Logic =====
