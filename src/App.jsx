@@ -20,7 +20,12 @@ const getEmoji = (name) => {
 export default function App() {
   const [tab, setTab] = useState('calculator') // 'calculator' | 'admin'
   const [dishes, setDishes] = useState([])
-  const [quantities, setQuantities] = useState({}) // { id: { here: 0, toGo: 0 } }
+  const [quantities, setQuantities] = useState(() => {
+    try {
+      const saved = localStorage.getItem('currentOrder')
+      return saved ? JSON.parse(saved) : {}
+    } catch { return {} }
+  }) // { id: { here: 0, toGo: 0 } }
   const [amountPaid, setAmountPaid] = useState('')
   const [toast, setToast] = useState({ msg: '', visible: false })
 
@@ -47,6 +52,11 @@ export default function App() {
   const [sales, setSales] = useState([])
   const [paymentMethod, setPaymentMethod] = useState('Efectivo') // 'Efectivo' | 'Transferencia'
   const [isSaving, setIsSaving] = useState(false)
+
+  // Persistence: Save current order (quantities) to localStorage
+  useEffect(() => {
+    localStorage.setItem('currentOrder', JSON.stringify(quantities))
+  }, [quantities])
 
   // Filter state (default today)
   const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
@@ -115,6 +125,57 @@ export default function App() {
     setTimeout(() => setToast({ msg: '', visible: false }), 2500)
   }
 
+  // ===== Export Excel Logic =====
+  const exportToExcel = () => {
+    if (sales.length === 0) {
+      showToast('⚠️ No hay ventas para exportar')
+      return
+    }
+    
+    // CSV Header (organized for Excel)
+    const headers = ["Fecha", "Hora", "Productos Detallados", "Subtotal ($)", "Adicional Envases ($)", "Total ($)", "Método de Pago"]
+    
+    const rows = sales.map(s => {
+      const dateObj = new Date(s.created_at)
+      const dateStr = dateObj.toLocaleDateString()
+      const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      
+      // Detailed items string
+      const itemsStr = s.items.map(it => {
+        const totalQty = it.qtyHere + it.qtyToGo
+        const details = []
+        if (it.qtyHere > 0) details.push(`${it.qtyHere} aquí`)
+        if (it.qtyToGo > 0) details.push(`${it.qtyToGo} llevar`)
+        return `${it.name} x${totalQty} [${details.join(' | ')}]`
+      }).join(' / ')
+      
+      return [
+        dateStr,
+        timeStr,
+        `"${itemsStr}"`,
+        Number(s.subtotal).toFixed(2),
+        Number(s.togo_fee).toFixed(2),
+        Number(s.total).toFixed(2),
+        s.payment_method
+      ]
+    })
+
+    // Prepare CSV Content with BOM for Excel compatibility (accents/emojis)
+    const BOM = "\ufeff"
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n")
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    
+    // Create download link
+    const link = document.body.appendChild(document.createElement("a"))
+    link.href = url
+    link.download = `Ventas_CeviFlow_${filterStartDate}_a_${filterEndDate}.csv`
+    link.click()
+    document.body.removeChild(link)
+    
+    showToast('📊 Reporte descargado')
+  }
+
   // ===== Calculator Logic =====
   const adjustQty = (id, type, delta) => {
     setQuantities(prev => {
@@ -167,6 +228,7 @@ export default function App() {
 
   const resetOrder = () => {
     setQuantities({})
+    localStorage.removeItem('currentOrder') // Clear persistence
     setAmountPaid('')
     setPaymentMethod('Efectivo')
   }
@@ -492,8 +554,15 @@ export default function App() {
       {/* ===== SALES HISTORY SCREEN ===== */}
       {tab === 'ventas' && (
         <main className="screen">
-          <div className="section-title">Historial de Ventas</div>
-          <div className="section-subtitle">Consulta y filtra tus transacciones</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+            <div>
+              <div className="section-title">Historial de Ventas</div>
+              <div className="section-subtitle">Consulta y filtra tus transacciones</div>
+            </div>
+            <button className="btn-icon" onClick={exportToExcel} style={{ padding: '10px', fontSize: '18px' }} title="Descargar Excel">
+              📊
+            </button>
+          </div>
 
           {/* Label Helper */}
           {(() => {
