@@ -48,6 +48,11 @@ export default function App() {
   const [paymentMethod, setPaymentMethod] = useState('Efectivo') // 'Efectivo' | 'Transferencia'
   const [isSaving, setIsSaving] = useState(false)
 
+  // Filter state (default today)
+  const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+  const [filterStartDate, setFilterStartDate] = useState(todayStr)
+  const [filterEndDate, setFilterEndDate] = useState(todayStr)
+
   // Fetch dishes from backend
   const fetchDishes = useCallback(async () => {
     try {
@@ -67,7 +72,11 @@ export default function App() {
 
   const fetchSales = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/sales`)
+      const params = new URLSearchParams()
+      if (filterStartDate) params.append('startDate', filterStartDate)
+      if (filterEndDate) params.append('endDate', filterEndDate)
+      
+      const res = await fetch(`${API}/sales?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setSales(data)
@@ -75,11 +84,11 @@ export default function App() {
     } catch (err) {
       console.error('Error fetching sales:', err)
     }
-  }, [])
+  }, [filterStartDate, filterEndDate])
 
   useEffect(() => {
     if (tab === 'ventas') fetchSales()
-  }, [tab, fetchSales])
+  }, [tab, fetchSales, filterStartDate, filterEndDate])
 
   // Show toast notification
   const showToast = (msg) => {
@@ -465,23 +474,50 @@ export default function App() {
       {tab === 'ventas' && (
         <main className="screen">
           <div className="section-title">Historial de Ventas</div>
-          <div className="section-subtitle">Resumen diario y transacciones</div>
+          <div className="section-subtitle">Consulta y filtra tus transacciones</div>
+
+          {/* Date Filter UI */}
+          <div className="card" style={{ marginBottom: '20px', padding: '15px' }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div className="form-field" style={{ flex: 1, minWidth: '140px', marginBottom: 0 }}>
+                <label className="form-label" style={{ fontSize: '12px' }}>Desde</label>
+                <input 
+                  type="date" 
+                  className="form-input" 
+                  value={filterStartDate} 
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                />
+              </div>
+              <div className="form-field" style={{ flex: 1, minWidth: '140px', marginBottom: 0 }}>
+                <label className="form-label" style={{ fontSize: '12px' }}>Hasta</label>
+                <input 
+                  type="date" 
+                  className="form-input" 
+                  value={filterEndDate} 
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                />
+              </div>
+              <button 
+                className="btn-icon" 
+                onClick={fetchSales}
+                style={{ padding: '10px 15px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                🔄
+              </button>
+            </div>
+          </div>
 
           {/* Daily Totals Summary */}
           <div className="summary-grid">
             <div className="summary-box">
               <div className="summary-val">${
-                sales
-                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
-                  .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
+                sales.reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
               }</div>
-              <div className="summary-lab">Venta Total Hoy</div>
+              <div className="summary-lab">Venta Total Rango</div>
             </div>
             <div className="summary-box accent">
-              <div className="summary-val">{
-                sales.filter(s => new Date(s.created_at).toDateString() === new Date().toDateString()).length
-              }</div>
-              <div className="summary-lab">Pedidos Hoy</div>
+              <div className="summary-val">{sales.length}</div>
+              <div className="summary-lab">Pedidos Rango</div>
             </div>
           </div>
 
@@ -490,7 +526,7 @@ export default function App() {
               <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>💵 EFECTIVO</div>
               <div style={{ fontWeight: '800', color: 'var(--mint)' }}>${
                 sales
-                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString() && s.payment_method === 'Efectivo')
+                  .filter(s => s.payment_method === 'Efectivo')
                   .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
               }</div>
             </div>
@@ -498,7 +534,7 @@ export default function App() {
               <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>📱 TRANSF.</div>
               <div style={{ fontWeight: '800', color: 'var(--mint)' }}>${
                 sales
-                  .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString() && s.payment_method === 'Transferencia')
+                  .filter(s => s.payment_method === 'Transferencia')
                   .reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
               }</div>
             </div>
