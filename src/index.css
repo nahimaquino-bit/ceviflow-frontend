@@ -963,3 +963,66 @@ input:checked + .slider:before {
 .sale-card:nth-child(3) { animation-delay: 0.15s; }
 .sale-card:nth-child(4) { animation-delay: 0.2s; }
 .sale-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* ===== Loading Screen ===== */
+.screen-loader {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.spinner {
+  font-size: 50px;
+  animation: bounce 1s infinite ease-in-out;
+  filter: drop-shadow(0 0 10px var(--accent-glow));
+}
+
+/* ===== Login Screen ===== */
+.login-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--bg-app);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 30px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Sync Banner ===== */
+.sync-banner {
+  background: var(--teal);
+  color: var(--navy-dark);
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  margin-bottom: 15px;
+  cursor: pointer;
+  animation: pulseSync 2s infinite;
+}
+
+@keyframes pulseSync {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.8; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+
