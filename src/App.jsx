@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 const API = (import.meta.env.VITE_API_URL || '') + '/api'
 
@@ -53,24 +53,42 @@ export default function App() {
   const [filterStartDate, setFilterStartDate] = useState(todayStr)
   const [filterEndDate, setFilterEndDate] = useState(todayStr)
 
+  // Tracking last fetch to avoid redundant calls
+  const lastFetchedSalesRange = useRef({ start: '', end: '' })
+  const hasLoadedDishes = useRef(false)
+
   // Fetch dishes from backend
-  const fetchDishes = useCallback(async () => {
+  const fetchDishes = useCallback(async (force = false) => {
+    // Cache: return if already loaded and not forced
+    if (hasLoadedDishes.current && !force && dishes.length > 0) return
+    
     try {
       const res = await fetch(`${API}/dishes`)
       if (res.ok) {
         const data = await res.json()
         setDishes(data)
+        hasLoadedDishes.current = true
       } else {
         showToast(`❌ Error: ${res.status} al cargar platos`)
       }
     } catch (err) {
       showToast('❌ No se pudo conectar con el servidor')
     }
-  }, [])
+  }, [dishes.length])
 
-  useEffect(() => { fetchDishes() }, [fetchDishes])
+  useEffect(() => { 
+    fetchDishes() 
+  }, [fetchDishes])
 
-  const fetchSales = useCallback(async () => {
+  const fetchSales = useCallback(async (force = false) => {
+    // Cache: Avoid fetching if dates haven't changed, unless forced
+    if (!force && 
+        lastFetchedSalesRange.current.start === filterStartDate && 
+        lastFetchedSalesRange.current.end === filterEndDate &&
+        sales.length > 0) {
+      return
+    }
+
     try {
       const params = new URLSearchParams()
       if (filterStartDate) params.append('startDate', filterStartDate)
@@ -80,15 +98,16 @@ export default function App() {
       if (res.ok) {
         const data = await res.json()
         setSales(data)
+        lastFetchedSalesRange.current = { start: filterStartDate, end: filterEndDate }
       }
     } catch (err) {
       console.error('Error fetching sales:', err)
     }
-  }, [filterStartDate, filterEndDate])
+  }, [filterStartDate, filterEndDate, sales.length])
 
   useEffect(() => {
     if (tab === 'ventas') fetchSales()
-  }, [tab, fetchSales, filterStartDate, filterEndDate])
+  }, [tab, fetchSales])
 
   // Show toast notification
   const showToast = (msg) => {
@@ -187,7 +206,7 @@ export default function App() {
 
         showToast('✅ Venta guardada correctamente')
         resetOrder()
-        if (tab === 'ventas') fetchSales()
+        if (tab === 'ventas') fetchSales(true) 
       } else {
         showToast('❌ Error al guardar la venta')
       }
@@ -213,7 +232,7 @@ export default function App() {
         })
       })
       if (res.ok) {
-        await fetchDishes()
+        await fetchDishes(true) // Force refresh cache
         setNewName('')
         setNewPrice('')
         setNewCategory('Plato')
@@ -230,7 +249,7 @@ export default function App() {
   const deleteDish = async (id) => {
     try {
       await fetch(`${API}/dishes/${id}`, { method: 'DELETE' })
-      await fetchDishes()
+      await fetchDishes(true) // Force refresh cache
       setQuantities(prev => { const n = { ...prev }; delete n[id]; return n })
       showToast('🗑️ Plato eliminado')
     } catch { showToast('❌ Error al eliminar') }
@@ -263,7 +282,7 @@ export default function App() {
         })
       })
       if (res.ok) {
-        await fetchDishes()
+        await fetchDishes(true) // Force refresh cache
         cancelEdit()
         showToast('✏️ Producto actualizado')
       }
@@ -476,6 +495,13 @@ export default function App() {
           <div className="section-title">Historial de Ventas</div>
           <div className="section-subtitle">Consulta y filtra tus transacciones</div>
 
+          {/* Label Helper */}
+          {(() => {
+            const isToday = filterStartDate === todayStr && filterEndDate === todayStr;
+            const rangeLabel = isToday ? 'Hoy' : 'del Rango';
+            
+            return (
+              <>
           {/* Date Filter UI */}
           <div className="card" style={{ marginBottom: '20px', padding: '15px' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -499,7 +525,7 @@ export default function App() {
               </div>
               <button 
                 className="btn-icon" 
-                onClick={fetchSales}
+                onClick={() => fetchSales(true)}
                 style={{ padding: '10px 15px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 🔄
@@ -513,13 +539,16 @@ export default function App() {
               <div className="summary-val">${
                 sales.reduce((acc, s) => acc + Number(s.total), 0).toFixed(2)
               }</div>
-              <div className="summary-lab">Venta Total Rango</div>
+              <div className="summary-lab">Venta Total {rangeLabel}</div>
             </div>
             <div className="summary-box accent">
               <div className="summary-val">{sales.length}</div>
-              <div className="summary-lab">Pedidos Rango</div>
+              <div className="summary-lab">Pedidos {rangeLabel}</div>
             </div>
           </div>
+              </>
+            );
+          })()}
 
           <div className="payment-methods-summary" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <div className="card" style={{ flex: 1, padding: '12px', textAlign: 'center' }}>
