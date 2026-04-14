@@ -23,13 +23,13 @@ export default function App() {
   const [tab, setTab] = useState('calculator') 
   const [dishes, setDishes] = useState(() => {
     try {
-      const saved = localStorage.getItem('cachedDishes')
+      const saved = localStorage.getItem('reelbetCachedDishes')
       return saved ? JSON.parse(saved) : []
     } catch { return [] }
   })
   const [quantities, setQuantities] = useState(() => {
     try {
-      const saved = localStorage.getItem('currentOrder')
+      const saved = localStorage.getItem('reelbetCurrentOrder')
       return saved ? JSON.parse(saved) : {}
     } catch { return {} }
   }) 
@@ -99,7 +99,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json()
         setDishes(data)
-        localStorage.setItem('cachedDishes', JSON.stringify(data))
+        localStorage.setItem('reelbetCachedDishes', JSON.stringify(data))
         hasLoadedDishes.current = true
       } else {
         showToast(`❌ Error: ${res.status} al cargar platos`)

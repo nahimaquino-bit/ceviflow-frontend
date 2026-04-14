@@ -19,10 +19,11 @@
 
 [data-theme='light'] {
   --bg-primary:   #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-card:      rgba(241, 245, 249, 0.85);
+  --bg-secondary: #f4f7fa;
+  --bg-card:      #fcfcfc;
   --bg-card-hover:#ffffff;
-  --bg-tab-nav:   rgba(255, 255, 255, 0.9);
+  --bg-tab-nav:   #ffffff;
+
 
   --silver:       #1e293b;
   --silver-dark:  #0f172a;
@@ -46,9 +47,10 @@
 [data-theme='dark'] {
   --bg-primary:   #000000;
   --bg-secondary: #0a0a0b;
-  --bg-card:      rgba(15, 15, 17, 0.7);
-  --bg-card-hover:rgba(22, 22, 25, 0.9);
-  --bg-tab-nav:   rgba(0, 0, 0, 0.9);
+  --bg-card:      #0c0c0e;
+  --bg-card-hover:#121215;
+  --bg-tab-nav:   #000000;
+
 
   --silver:       #e2e8f0;
   --silver-dark:  #94a3b8;
@@ -170,13 +172,14 @@ body::after {
   flex-direction: column; /* Stack logo and text for more impact */
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-card); /* Now solid */
   padding: 12px 24px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow);
   width: fit-content;
 }
+
 
 
 
@@ -308,16 +311,16 @@ body::after {
 }
 
 
-/* ===== Glass Card ===== */
+/* ===== Glass Card (Now Solid for clarity) ===== */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: border-color var(--transition);
+  padding: 22px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow);
 }
+
 
 .card:hover { border-color: rgba(125,217,192,0.25); }
 
