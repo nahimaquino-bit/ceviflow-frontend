@@ -1,11 +1,11 @@
 {
-  "name": "CeviFlow",
-  "short_name": "CeviFlow",
-  "description": "Calculadora de pedidos para tu cevichería",
+  "name": "Reelbet App",
+  "short_name": "Reelbet",
+  "description": "Gestión de pedidos premium para tu negocio",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0f1e",
-  "theme_color": "#0a0f1e",
+  "background_color": "#0c0a0d",
+  "theme_color": "#0c0a0d",
   "icons": [
     {
       "src": "/icon-192.png",

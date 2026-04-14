@@ -34,7 +34,7 @@ const AdminPanel = ({
               <input
                 className="form-input"
                 type="text"
-                placeholder="Ceviche Rojo"
+                placeholder="Producto Premium"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 required

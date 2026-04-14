@@ -32,8 +32,16 @@ const Login = () => {
   return (
     <div className="login-screen">
       <div className="login-card card">
-        <div className="logo-text" style={{ fontSize: '32px', marginBottom: '8px', textAlign: 'center' }}>
-          <span className="cevi">CEVI</span><span className="flow">FLOW</span>
+        <div className="logo-wrapper" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            style={{ height: '240px', width: 'auto', borderRadius: '16px', filter: 'drop-shadow(0 0 20px rgba(197, 160, 89, 0.2))' }}
+            onError={(e) => e.target.style.display = 'none'} 
+          />
+          <div className="logo-text" style={{ fontSize: '40px', letterSpacing: '-0.05em' }}>
+            <span className="reelbet">REELBET</span><span className="app-text">APP</span>
+          </div>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', textAlign: 'center' }}>
           Inicia sesión para gestionar tu negocio
@@ -84,12 +92,12 @@ const Login = () => {
             disabled={loading}
             style={{ marginTop: '24px', height: '50px' }}
           >
-            {loading ? 'Cargando...' : 'Entrar a CeviFlow'}
+            {loading ? 'Cargando...' : 'Entrar a Reelbet App'}
           </button>
         </form>
 
         <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
-          CeviFlow POS - v1.1 Premium
+          Reelbet App - v1.0
         </div>
       </div>
     </div>

@@ -83,12 +83,12 @@ export default function App() {
   const handleLogout = () => supabase.auth.signOut()
 
   useEffect(() => {
-    localStorage.setItem('currentOrder', JSON.stringify(quantities))
+    localStorage.setItem('reelbetCurrentOrder', JSON.stringify(quantities))
   }, [quantities])
 
   const showToast = (msg) => {
     setToast({ msg, visible: true })
-    setTimeout(() => setToast({ msg: '', visible: false }), 2500)
+    setTimeout(() => setToast({ msg: '', visible: false }), 3000)
   }
 
   const fetchDishes = useCallback(async (force = false) => {
@@ -186,7 +186,7 @@ export default function App() {
 
   const resetOrder = () => {
     setQuantities({})
-    localStorage.removeItem('currentOrder')
+    localStorage.removeItem('reelbetCurrentOrder')
     setAmountPaid('')
     setPaymentMethod('Efectivo')
   }

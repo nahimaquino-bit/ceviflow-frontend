@@ -1,6 +1,6 @@
 import { API_URL } from './helpers';
 
-const OFFLINE_QUEUE_KEY = 'ceviflow_pending_sales';
+const OFFLINE_QUEUE_KEY = 'reelbet_pending_sales';
 
 const syncManager = {
   // Add a sale to the local queue

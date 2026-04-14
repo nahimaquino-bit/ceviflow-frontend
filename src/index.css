@@ -1,53 +1,76 @@
-/* ===== CeviFlow - Brand Design System ===== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* ===== Reelbet App - Premium Design System ===== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   /* Common Tokens */
-  --mint:        #7dd9c0;
-  --mint-dark:   #4db8a3;
-  --danger:      #ff3b30; /* iOS Red */
-  --success:     #34c759; /* iOS Green */
+  --gold:         #c5a059;
+
+  --gold-dark:    #a38047;
+  --danger:       #ff3b30;
+  --success:      #34c759;
   
   --radius:    24px;
   --radius-sm: 16px;
   --radius-xs: 12px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
 
 [data-theme='light'] {
   --bg-primary:   #ffffff;
-  --bg-secondary: #f2f2f7;
-  --bg-card:      #ffffff;
-  --bg-card-hover:#f9f9fb;
-  --bg-tab-nav:   rgba(255, 255, 255, 0.8);
+  --bg-secondary: #f8fafc;
+  --bg-card:      rgba(241, 245, 249, 0.85);
+  --bg-card-hover:#ffffff;
+  --bg-tab-nav:   rgba(255, 255, 255, 0.9);
+
+  --silver:       #1e293b;
+  --silver-dark:  #0f172a;
+
+
   
-  --text-primary:   #000000;
-  --text-secondary: #3c3c43;
-  --text-muted:     #8e8e93;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
   
-  --border:        rgba(0, 0, 0, 0.08);
-  --border-active: rgba(0, 0, 0, 0.2);
-  --shadow:        0 8px 30px rgba(0,0,0,0.06);
-  --accent-glow:   rgba(125,217,192,0.3);
+  --border:        rgba(0, 0, 0, 0.06);
+  --border-active: var(--gold);
+  --shadow:        0 8px 30px rgba(15, 23, 42, 0.08);
+  --accent-glow:   rgba(197, 160, 89, 0.2);
+  --pattern-opacity: 0.6;
+  --pattern-filter: invert(1);
+  --pattern-blend: multiply;
 }
+
 
 [data-theme='dark'] {
   --bg-primary:   #000000;
-  --bg-secondary: #1c1c1e;
-  --bg-card:      #1c1c1e;
-  --bg-card-hover:#2c2c2e;
-  --bg-tab-nav:   rgba(0, 0, 0, 0.8);
+  --bg-secondary: #0a0a0b;
+  --bg-card:      rgba(15, 15, 17, 0.7);
+  --bg-card-hover:rgba(22, 22, 25, 0.9);
+  --bg-tab-nav:   rgba(0, 0, 0, 0.9);
+
+  --silver:       #e2e8f0;
+  --silver-dark:  #94a3b8;
+
+
   
-  --text-primary:   #ffffff;
-  --text-secondary: #ebebf5;
-  --text-muted:     #8e8e93;
+  --text-primary:   #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
   
-  --border:        rgba(255, 255, 255, 0.1);
-  --border-active: rgba(255, 255, 255, 0.3);
-  --shadow:        0 0 0 rgba(0,0,0,0);
-  --accent-glow:   rgba(125,217,192,0.15);
+  --border:        rgba(226, 232, 240, 0.15);
+  --border-active: var(--gold);
+  --shadow:        0 10px 40px rgba(0, 0, 0, 0.5);
+  --accent-glow:   rgba(197, 160, 89, 0.15);
+  --pattern-opacity: 0.5;
+  --pattern-filter: none;
+  --pattern-blend: screen;
 }
+
+
+
+
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -57,15 +80,66 @@ body {
   font-family: var(--font-main);
   background: var(--bg-primary);
   color: var(--text-primary);
+
+
   min-height: 100svh;
   overflow-x: hidden;
   transition: background-color var(--transition), color var(--transition);
+  position: relative;
 }
 
-/* No more animated background - keeping it minimalist */
-body::before, body::after { display: none; }
+/* Background Pattern (Seamless Minimalist Anchors ONLY) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/bg-pattern.png');
+  /* Adjusted for a denser, more premium texture with only one icon type */
+  background-size: 250px; 
+  background-repeat: repeat;
+  background-position: center;
+  mix-blend-mode: var(--pattern-blend);
+  filter: var(--pattern-filter);
+  opacity: var(--pattern-opacity);
+  z-index: -1;
+  pointer-events: none;
+}
+
+
+
+
+
+
+
+/* Noise/Grain layer for 'More Texture' */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  z-index: -1;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+}
+
+
+/* Center light/vignette to make the texture 'pop' in the middle */
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(197, 160, 89, 0.12) 0%, transparent 80%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+
+
 
 #root { position: relative; z-index: 1; min-height: 100svh; }
+
 
 /* ===== App Shell ===== */
 .app { max-width: 480px; margin: 0 auto; min-height: 100svh; display: flex; flex-direction: column; }
@@ -76,11 +150,29 @@ body::before, body::after { display: none; }
   display: flex;
   align-items: center;
   justify-content: space-between; /* Space for toggle */
-  position: sticky;
-  top: 0;
-  background: var(--bg-primary);
+  position: relative;
   z-index: 100;
 }
+
+
+/* Invert white logo in light mode and adjust brightness for premium look */
+[data-theme='light'] .logo-container img,
+[data-theme='light'] .logo-wrapper img {
+  filter: invert(1) brightness(0.2);
+}
+
+.logo-container {
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 
 /* Theme Toggle Button */
 .theme-toggle {
@@ -104,17 +196,23 @@ body::before, body::after { display: none; }
 
 .logo-text {
   font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.logo-text .reelbet {
+  color: var(--silver);
+  text-shadow: 0 0 10px rgba(226, 232, 240, 0.3);
+}
+
+.logo-text .app-text {
+  color: var(--gold);
+  margin-left: 2px;
   font-weight: 900;
-  letter-spacing: -0.02em;
+  text-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
 }
 
-.logo-text .cevi {
-  color: var(--text-primary);
-}
-
-.logo-text .flow {
-  color: var(--mint);
-}
 
 /* Hide old logo glow effects */
 .logo-glow-ring, .logo-img { display: none; }
@@ -174,7 +272,7 @@ body::before, body::after { display: none; }
 }
 
 .tab-btn.active {
-  color: var(--mint);
+  color: var(--gold);
   transform: translateY(-2px);
 }
 
@@ -182,11 +280,12 @@ body::before, body::after { display: none; }
   content: '';
   width: 4px;
   height: 4px;
-  background: var(--mint);
+  background: var(--gold);
   border-radius: 50%;
   margin-top: 4px;
-  box-shadow: 0 0 10px var(--mint);
+  box-shadow: 0 0 12px var(--gold);
 }
+
 
 .tab-btn:not(.active):hover {
   color: var(--text-primary);
@@ -199,7 +298,9 @@ body::before, body::after { display: none; }
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: transparent; /* Ensure pattern is visible */
 }
+
 
 /* ===== Glass Card ===== */
 .card {
@@ -263,10 +364,11 @@ body::before, body::after { display: none; }
 .product-card:hover::before { opacity: 1; }
 
 .product-card.has-quantity {
-  border-color: var(--mint);
-  background: rgba(125,217,192,0.06);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 15px var(--accent-glow);
+  border-color: var(--gold);
+  background: rgba(197, 160, 89, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
 }
+
 
 .product-emoji {
   font-size: 28px;
@@ -290,11 +392,12 @@ body::before, body::after { display: none; }
 
 .dish-price {
   font-size: 11px;
-  color: var(--mint);
+  color: var(--gold);
   font-weight: 700;
   opacity: 0.9;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
+
 
 /* ===== Counter ===== */
 .counter {
@@ -348,7 +451,8 @@ body::before, body::after { display: none; }
   color: var(--text-primary);
 }
 
-.product-card.has-quantity .counter-value { color: var(--mint); }
+.product-card.has-quantity .counter-value { color: var(--gold); }
+
 
 /* ===== Dual Counter Layout (Compact) ===== */
 .counters-container {
@@ -420,9 +524,9 @@ body::before, body::after { display: none; }
 }
 
 .category-option.active {
-  background: var(--mint);
+  background: var(--gold);
   color: #000;
-  box-shadow: 0 4px 12px var(--accent-glow);
+  box-shadow: 0 4px 15px var(--accent-glow);
 }
 
 /* ===== To Go Toggle ===== */
@@ -433,9 +537,10 @@ body::before, body::after { display: none; }
 }
 
 .to-go-card.active {
-  border-color: var(--mint);
+  border-color: var(--gold);
   background: var(--accent-glow);
 }
+
 
 .toggle-label {
   display: flex;
@@ -538,14 +643,15 @@ input:checked + .slider:before {
 .to-go-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--mint);
+  color: var(--gold);
 }
 
 .to-go-amount {
   font-size: 15px;
   font-weight: 700;
-  color: var(--mint);
+  color: var(--gold);
 }
+
 
 /* ===== Totals Card ===== */
 .totals-card {
@@ -595,10 +701,12 @@ input:checked + .slider:before {
 
 .total-amount {
   font-size: 42px;
-  font-weight: 900;
-  color: var(--mint);
-  letter-spacing: -0.02em;
+  font-weight: 950;
+  color: var(--gold);
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
 }
+
 
 /* ===== Payment Card ===== */
 .payment-card {
@@ -640,9 +748,10 @@ input:checked + .slider:before {
 }
 
 .money-input:focus {
-  border-color: var(--mint);
+  border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
+
 
 .money-input::placeholder { color: var(--text-muted); font-size: 20px; font-weight: 500; }
 
@@ -700,25 +809,31 @@ input:checked + .slider:before {
 .btn-primary {
   padding: 14px;
   border: none;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
-  color: var(--navy-dark);
-  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: #000;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 800;
   border-radius: var(--radius);
   cursor: pointer;
   transition: all var(--transition);
   width: 100%;
-  box-shadow: 0 4px 20px rgba(77,184,163,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
-  letter-spacing: 0.02em;
+  box-shadow: 0 6px 20px rgba(197, 160, 89, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(77,184,163,0.5);
+  box-shadow: 0 10px 30px rgba(197, 160, 89, 0.45);
 }
 
-.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+
 
 .btn-icon {
   padding: 8px 14px;
@@ -733,7 +848,8 @@ input:checked + .slider:before {
   transition: all var(--transition);
 }
 
-.btn-icon:hover { border-color: var(--mint); color: var(--mint); background: rgba(125,217,192,0.06); }
+.btn-icon:hover { border-color: var(--gold); color: var(--gold); background: rgba(197, 160, 89, 0.08); }
+
 .btn-icon.danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(248,113,113,0.06); }
 
 /* ===== Admin Screen ===== */
@@ -762,7 +878,8 @@ input:checked + .slider:before {
   transition: all var(--transition);
 }
 
-.form-input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px var(--accent-glow); }
+.form-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--accent-glow); }
+
 .form-input::placeholder { color: var(--text-muted); font-weight: 400; }
 
 /* ===== Admin Dish Items ===== */
@@ -777,7 +894,8 @@ input:checked + .slider:before {
   transition: all var(--transition);
 }
 
-.admin-dish-item:hover { border-color: var(--mint); background: var(--bg-card-hover); }
+.admin-dish-item:hover { border-color: var(--gold); background: var(--bg-card-hover); }
+
 
 .admin-dish-info { flex: 1; }
 
