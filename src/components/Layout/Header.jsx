@@ -14,7 +14,7 @@ const Header = ({ theme, toggleTheme, onLogout }) => {
           <span className="reelbet">REELBET</span><span className="app-text">APP</span>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="header-actions">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Cambiar tema">
           {theme === 'light' ? '🌙' : '☀️'}
         </button>
